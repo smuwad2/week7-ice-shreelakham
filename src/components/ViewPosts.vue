@@ -1,8 +1,5 @@
-<script setup>
-    import axios from 'axios';
-</script>
-
 <script>
+import axios from 'axios';
 export default {
     data() {
         return {
@@ -36,10 +33,34 @@ export default {
     },
     methods: {
         editPost(id) {
-            
+            let postToBeEdited = this.posts.find(post => post.id == id)
+            if (postToBeEdited) {
+                this.entry = postToBeEdited.entry;
+                this.mood = postToBeEdited.mood;
+                this.showEditPost = true;
+                this.editPostId = id;
+            }
         },
-        updatePost(event) {
-            
+        updatePost() {
+            const postData = {
+                entry: this.entry,
+                mood: this.mood
+            };
+            axios.post(`${this.baseUrl}/updatePost?id=${this.editPostId}`, postData)
+                .then(response => {
+                    console.log('Post updated successfully');
+                   
+                    let updatedPost = this.posts.find(post => post.id == this.editPostId)
+                    updatedPost.entry  = this.entry;
+                    updatedPost.mood = this.mood;
+
+                    this.showEditPost = false; // Hide the edit form after updating
+                    this.entry = ""; // Clear the entry field
+                    this.mood = ""; // Clear the mood field
+                })
+                .catch(error => {
+                    console.error('Error updating post:', error);
+                });
         }
     }
 }
@@ -61,7 +82,7 @@ export default {
                     <td>{{ post.id }}</td>
                     <td>{{ post.entry }}</td>
                     <td>{{ post.mood }}</td>
-                    <td><button>Edit</button></td>
+                    <td><button @click="editPost(post.id)">Edit</button></td>
                 </tr>
             </tbody>
 
@@ -82,7 +103,7 @@ export default {
                             <option v-for="mood in moods" :value="mood">{{ mood }}</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Update Post</button>
+                    <button type="submit" class="btn btn-primary" @click="updatePost">Update Post</button>
                 </form>
             </div>
         </div>
